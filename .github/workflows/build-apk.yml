@@ -1,0 +1,38 @@
+name: Build MotoDashcam APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build-apk.yml'
+      - 'MotoDashcam_Android_Project_v1_1.zip'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract Android project
+        run: |
+          unzip -o MotoDashcam_Android_Project_v1_1.zip -d source
+          find source -name gradlew -type f
+
+      - name: Build APK
+        run: |
+          cd source
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MotoDashcam-APK
+          path: source/**/build/outputs/apk/debug/*.apk
