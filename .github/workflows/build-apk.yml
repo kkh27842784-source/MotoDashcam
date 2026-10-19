@@ -1,28 +1,41 @@
-plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-}
 
-android {
-    namespace = "kr.motodashcam"
-    compileSdk = 35
+name: Build MotoDashcam APK
 
-    defaultConfig {
-        applicationId = "kr.motodashcam"
-        minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
-    }
-}
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'MotoDashcam_Android_Project_v1_1.zip'
+      - '.github/workflows/build-apk.yml'
 
-dependencies {
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.lifecycle:lifecycle-service:2.8.7")
-    implementation("androidx.camera:camera-camera2:1.4.1")
-    implementation("androidx.camera:camera-lifecycle:1.4.1")
-    implementation("androidx.camera:camera-video:1.4.1")
-    implementation("androidx.camera:camera-view:1.4.1")
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract Android project
+        run: |
+          mkdir -p source
+          unzip -o MotoDashcam_Android_Project_v1_1.zip -d source
+          find source -type f -name gradlew
+
+      - name: Build APK
+        run: |
+          cd source/MotoDashcam
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MotoDashcam-APK
+          path: source/MotoDashcam/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
